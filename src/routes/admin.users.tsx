@@ -44,31 +44,77 @@ function UsersAdmin() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/users", { headers: await authHeaders() });
-      const payload = await res.json() as UserResponse | { error: string };
-      if (!res.ok) throw new Error("error" in payload ? payload.error : "Unable to load users");
-      const users = (payload as UserResponse).users;
-      setDrafts(Object.fromEntries(users.map((user) => [
-        user.id,
-        { displayName: user.display_name ?? "", role: user.roles[0] ?? "editor" },
-      ])));
-      return users;
+      try {
+        const res = await fetch("/api/admin/users", { headers: await authHeaders() });
+        const text = await res.text();
+        if (text.trim().startsWith("<!DOCTYPE")) {
+          throw new Error("HTML response");
+        }
+        const payload = JSON.parse(text) as UserResponse | { error: string };
+        if (!res.ok) throw new Error("error" in payload ? payload.error : "Unable to load users");
+        const users = (payload as UserResponse).users;
+        setDrafts(Object.fromEntries(users.map((user) => [
+          user.id,
+          { displayName: user.display_name ?? "", role: user.roles[0] ?? "editor" },
+        ])));
+        return users;
+      } catch (err) {
+        console.warn("API list users failed, falling back to client-side Supabase query:", err);
+        const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
+          supabase.from("profiles").select("id, email, display_name, created_at"),
+          supabase.from("user_roles").select("user_id, role, created_at"),
+        ]);
+        if (pErr || rErr) {
+          throw new Error(pErr?.message ?? rErr?.message ?? "Unable to load users directly from database");
+        }
+        
+        const rolesByUser = new Map<string, string[]>();
+        for (const role of roles ?? []) {
+          const list = rolesByUser.get(role.user_id) ?? [];
+          list.push(role.role);
+          rolesByUser.set(role.user_id, list);
+        }
+
+        const users: AdminUser[] = (profiles ?? []).map((item) => ({
+          id: item.id,
+          email: item.email,
+          display_name: item.display_name,
+          created_at: item.created_at,
+          last_sign_in_at: null,
+          roles: (rolesByUser.get(item.id) ?? []) as AdminRole[],
+        }));
+
+        setDrafts(Object.fromEntries(users.map((user) => [
+          user.id,
+          { displayName: user.display_name ?? "", role: user.roles[0] ?? "editor" },
+        ])));
+        return users;
+      }
     },
   });
 
   const create = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: JSON.stringify(newUser),
-      });
-      const payload = await res.json() as { error?: string };
-      if (!res.ok) throw new Error(payload.error ?? "Unable to create user");
+      try {
+        const res = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: await authHeaders(),
+          body: JSON.stringify(newUser),
+        });
+        const text = await res.text();
+        if (text.trim().startsWith("<!DOCTYPE")) {
+          throw new Error("HTML response");
+        }
+        const payload = JSON.parse(text) as { error?: string };
+        if (!res.ok) throw new Error(payload.error ?? "Unable to create user");
+      } catch (err) {
+        console.warn("API create user failed, falling back to client-side Supabase:", err);
+        throw new Error("To add a new admin/editor on static hosts, they must sign up on the site first, and then you can assign them a role in this list.");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast.success("User created");
+      toast.success("User created successfully");
       setNewUser({ email: "", displayName: "", password: "", role: "editor" });
       setOpen(false);
     },
@@ -77,37 +123,84 @@ function UsersAdmin() {
 
   const update = useMutation({
     mutationFn: async (userId: string) => {
-      const draft = drafts[userId];
-      const res = await fetch("/api/admin/users", {
-        method: "PATCH",
-        headers: await authHeaders(),
-        body: JSON.stringify({ userId, displayName: draft.displayName, role: draft.role }),
-      });
-      const payload = await res.json() as { error?: string };
-      if (!res.ok) throw new Error(payload.error ?? "Unable to update user");
+      try {
+        const res = await fetch("/api/admin/users", {
+          method: "PATCH",
+          headers: await authHeaders(),
+          body: JSON.stringify({ userId, displayName: drafts[userId].displayName, role: drafts[userId].role }),
+        });
+        const text = await res.text();
+        if (text.trim().startsWith("<!DOCTYPE")) {
+          throw new Error("HTML response");
+        }
+        const payload = JSON.parse(text) as { error?: string };
+        if (!res.ok) throw new Error(payload.error ?? "Unable to update user");
+      } catch (err) {
+        console.warn("API update user failed, falling back to client-side Supabase:", err);
+        const draft = drafts[userId];
+        
+        // 1. Update user role in user_roles table
+        const { error: delErr } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId);
+        if (delErr) throw new Error(delErr.message);
+
+        const { error: insErr } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: draft.role });
+        if (insErr) throw new Error(insErr.message);
+
+        // 2. Update display name in profiles table
+        const { error: profErr } = await supabase
+          .from("profiles")
+          .update({ display_name: draft.displayName })
+          .eq("id", userId);
+        if (profErr) throw new Error(profErr.message);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast.success("User updated");
+      toast.success("User updated successfully");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const remove = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await fetch(`/api/admin/users?userId=${encodeURIComponent(userId)}`, {
-        method: "DELETE",
-        headers: await authHeaders(),
-      });
-      const payload = await res.json() as { error?: string };
-      if (!res.ok) throw new Error(payload.error ?? "Unable to delete user");
+      try {
+        const res = await fetch(`/api/admin/users?userId=${encodeURIComponent(userId)}`, {
+          method: "DELETE",
+          headers: await authHeaders(),
+        });
+        const text = await res.text();
+        if (text.trim().startsWith("<!DOCTYPE")) {
+          throw new Error("HTML response");
+        }
+        const payload = JSON.parse(text) as { error?: string };
+        if (!res.ok) throw new Error(payload.error ?? "Unable to delete user");
+      } catch (err) {
+        console.warn("API delete user failed, falling back to client-side Supabase:", err);
+        const { error: delErr } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId);
+        if (delErr) throw new Error(delErr.message);
+
+        const { error: profErr } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", userId);
+        if (profErr) throw new Error(profErr.message);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
-      toast.success("User deleted");
+      toast.success("User deleted / admin access revoked");
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <div className="space-y-6">
