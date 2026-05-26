@@ -44,36 +44,45 @@ function AdminLayout() {
   const [role, setRole] = useState<AdminRole | null>(null);
   const [email, setEmail] = useState("");
   const [bootstrapping, setBootstrapping] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const refreshAuth = async () => {
     setChecking(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setSignedIn(false);
-      setIsAdmin(false);
-      setRole(null);
-      setEmail("");
-      setChecking(false);
-      return;
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSignedIn(false);
+        setIsAdmin(false);
+        setRole(null);
+        setEmail("");
+        setErrorMsg(null);
+        setChecking(false);
+        return;
+      }
 
-    setSignedIn(true);
-    setEmail(user.email ?? "");
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-    const roles = (data ?? []).map((item) => item.role as string);
-    const resolvedRole: AdminRole | null = roles.includes("super_admin")
-      ? "super_admin"
-      : roles.includes("admin")
-        ? "admin"
-        : roles.includes("editor")
-          ? "editor"
-          : null;
-    setRole(resolvedRole);
-    setIsAdmin(!!resolvedRole);
-    setChecking(false);
+      setSignedIn(true);
+      setEmail(user.email ?? "");
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      const roles = (data ?? []).map((item) => item.role as string);
+      const resolvedRole: AdminRole | null = roles.includes("super_admin")
+        ? "super_admin"
+        : roles.includes("admin")
+          ? "admin"
+          : roles.includes("editor")
+            ? "editor"
+            : null;
+      setRole(resolvedRole);
+      setIsAdmin(!!resolvedRole);
+      setErrorMsg(null);
+      setChecking(false);
+    } catch (err: unknown) {
+      console.error("Auth check failed:", err);
+      setErrorMsg(err instanceof Error ? err.message : "Failed to connect to Supabase");
+      setChecking(false);
+    }
   };
 
   useEffect(() => {
@@ -90,11 +99,75 @@ function AdminLayout() {
     navigate({ to: "/admin" });
   };
 
-
-
-
   if (checking) {
     return <div className="min-h-screen flex items-center justify-center">Loading…</div>;
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
+        <Card className="w-full max-w-lg p-8 border-destructive/30 shadow-elegant">
+          <div className="text-center mb-6">
+            <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-4">
+              <ShieldCheck className="w-6 h-6 text-destructive" />
+            </div>
+            <h1 className="text-2xl font-bold text-destructive">Supabase Configuration Missing</h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              The admin dashboard cannot initialize because the Supabase keys are not set up in your GitHub Repository Secrets.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-destructive/5 rounded-lg p-4 border border-destructive/10 text-xs font-mono text-destructive-foreground break-all">
+              {errorMsg}
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm">How to fix this:</h3>
+              <ol className="list-decimal list-inside text-xs text-muted-foreground space-y-2.5">
+                <li>
+                  Go to your GitHub repository at{" "}
+                  <a
+                    href="https://github.com/yeafemi/swic"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline text-primary hover:text-primary/80 font-medium"
+                  >
+                    github.com/yeafemi/swic
+                  </a>
+                </li>
+                <li>
+                  Navigate to <strong>Settings</strong> &rarr; <strong>Secrets and variables</strong> &rarr; <strong>Actions</strong>.
+                </li>
+                <li>
+                  Click <strong>New repository secret</strong> and add:
+                  <div className="mt-1.5 p-2 bg-muted rounded font-mono text-[10px] select-all">
+                    Name: VITE_SUPABASE_URL<br />
+                    Value: https://elblsnadurmnszsmpfnu.supabase.co
+                  </div>
+                </li>
+                <li>
+                  Click <strong>New repository secret</strong> again and add:
+                  <div className="mt-1.5 p-2 bg-muted rounded font-mono text-[10px] select-all">
+                    Name: VITE_SUPABASE_PUBLISHABLE_KEY<br />
+                    Value: sb_publishable_1Dqn6KSNqRUIiAYut4_sng_5tTpKu_E
+                  </div>
+                </li>
+                <li>
+                  Go to the <strong>Actions</strong> tab in your repository, select your latest deployment workflow run, and click <strong>Re-run all jobs</strong> (or make a small push/commit to trigger a new build).
+                </li>
+              </ol>
+            </div>
+          </div>
+          
+          <div className="mt-8 flex justify-center">
+            <Button asChild variant="outline">
+              <Link to="/">Back to website</Link>
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   if (!signedIn) {
