@@ -7,7 +7,6 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  base: process.env.GITHUB_PAGES === "true" ? "/swic/" : "/",
   cloudflare: false,
   tanstackStart: {
     server: { entry: "server" },
@@ -15,5 +14,8 @@ export default defineConfig({
       enabled: true,
       crawlLinks: true,
     },
+  },
+  vite: {
+    base: process.env.GITHUB_PAGES === "true" ? "/swic/" : "/",
   },
 });
