@@ -155,6 +155,24 @@ export type Database = {
         }
         Relationships: []
       }
+      site_visits: {
+        Row: {
+          id: string
+          visitor_id: string
+          visited_at: string
+        }
+        Insert: {
+          id?: string
+          visitor_id: string
+          visited_at?: string
+        }
+        Update: {
+          id?: string
+          visitor_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
       leaders: {
         Row: {
           bio: string | null

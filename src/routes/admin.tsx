@@ -20,20 +20,20 @@ export const Route = createFileRoute("/admin")({
 });
 
 const NAV = [
-  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/hero-slides", label: "Hero Slider", icon: Sliders },
-  { to: "/admin/prayer-requests", label: "Prayer Requests", icon: HandHelping },
-  { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
-  { to: "/admin/giving", label: "Online Giving", icon: Heart },
-  { to: "/admin/testimonies", label: "Testimonies", icon: Quote },
-  { to: "/admin/sermons", label: "Sermons", icon: BookOpen },
-  { to: "/admin/events", label: "Events", icon: CalendarDays },
-  { to: "/admin/live-stream", label: "Live Stream", icon: Radio },
-  { to: "/admin/ministries", label: "Ministries", icon: Users },
-  { to: "/admin/leaders", label: "Leadership", icon: UserCog },
-  { to: "/admin/gallery", label: "Gallery", icon: ImageIcon },
-  { to: "/admin/users", label: "Users & Roles", icon: ShieldCheck, superOnly: true },
-  { to: "/admin/audit-logs", label: "Audit Logs", icon: ClipboardList, superOnly: true },
+  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true, color: "text-rose-600", bg: "bg-rose-500/10" },
+  { to: "/admin/hero-slides", label: "Hero Slider", icon: Sliders, color: "text-violet-600", bg: "bg-violet-500/10" },
+  { to: "/admin/prayer-requests", label: "Prayer Requests", icon: HandHelping, color: "text-amber-600", bg: "bg-amber-500/10" },
+  { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-500/10" },
+  { to: "/admin/giving", label: "Online Giving", icon: Heart, color: "text-pink-600", bg: "bg-pink-500/10" },
+  { to: "/admin/testimonies", label: "Testimonies", icon: Quote, color: "text-orange-600", bg: "bg-orange-500/10" },
+  { to: "/admin/sermons", label: "Sermons", icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+  { to: "/admin/events", label: "Events", icon: CalendarDays, color: "text-emerald-600", bg: "bg-emerald-500/10" },
+  { to: "/admin/live-stream", label: "Live Stream", icon: Radio, color: "text-red-600", bg: "bg-red-500/10" },
+  { to: "/admin/ministries", label: "Ministries", icon: Users, color: "text-teal-600", bg: "bg-teal-500/10" },
+  { to: "/admin/leaders", label: "Leadership", icon: UserCog, color: "text-cyan-600", bg: "bg-cyan-500/10" },
+  { to: "/admin/gallery", label: "Gallery", icon: ImageIcon, color: "text-fuchsia-600", bg: "bg-fuchsia-500/10" },
+  { to: "/admin/users", label: "Users & Roles", icon: ShieldCheck, superOnly: true, color: "text-sky-600", bg: "bg-sky-500/10" },
+  { to: "/admin/audit-logs", label: "Audit Logs", icon: ClipboardList, superOnly: true, color: "text-slate-600", bg: "bg-slate-500/10" },
 ];
 
 function AdminLayout() {
@@ -258,47 +258,69 @@ function AdminLayout() {
     <div className="min-h-screen bg-muted/20 flex">
       <aside className="w-64 bg-card border-r hidden md:flex flex-col">
         <div className="p-6 border-b">
-          <Link to="/admin" className="font-bold text-lg text-primary">SWIC Admin</Link>
+          <Link to="/admin" className="font-extrabold text-lg bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">SWIC Admin</Link>
           <p className="text-xs text-muted-foreground truncate mt-1">{email}</p>
-          {role && <p className="text-xs text-primary mt-1">{ROLE_LABELS[role]}</p>}
+          {role && (
+            <span className="inline-flex items-center mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
+              {ROLE_LABELS[role]}
+            </span>
+          )}
         </div>
-        <nav className="flex-1 p-3 space-y-1">
-          {visibleNav.map((item) => {
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {visibleNav.map((item, index) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  active ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "hover:bg-muted/80 text-foreground"
                 }`}
+                style={{ animationDelay: `${index * 30}ms` }}
               >
-                <item.icon className="h-4 w-4" />
-                {item.label}
+                <span className={`flex items-center justify-center h-7 w-7 rounded-lg transition-all duration-200 shrink-0 ${
+                  active
+                    ? "bg-white/20 text-primary-foreground"
+                    : `${item.bg} ${item.color}`
+                }`}>
+                  <item.icon className="h-4 w-4 admin-nav-icon transition-transform duration-300" />
+                </span>
+                <span className="truncate">{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="p-3 border-t space-y-1">
-          <Link to="/" className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-muted">
-            <Home className="h-4 w-4" /> View site
+        <div className="p-3 border-t space-y-0.5">
+          <Link to="/" className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-muted/80 transition-all duration-200">
+            <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0">
+              <Home className="h-4 w-4 admin-nav-icon transition-transform duration-300" />
+            </span>
+            View site
           </Link>
-          <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-muted text-left">
-            <LogOut className="h-4 w-4" /> Sign out
+          <button onClick={signOut} className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-destructive/10 text-foreground hover:text-destructive transition-all duration-200 text-left cursor-pointer">
+            <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-destructive/10 text-destructive shrink-0">
+              <LogOut className="h-4 w-4 admin-nav-icon transition-transform duration-300" />
+            </span>
+            Sign out
           </button>
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden bg-card border-b p-4 flex items-center justify-between">
-          <Link to="/admin" className="font-bold text-primary">SWIC Admin</Link>
+          <Link to="/admin" className="font-extrabold text-primary">SWIC Admin</Link>
           <button onClick={signOut}><LogOut className="h-5 w-5" /></button>
         </header>
         <nav className="md:hidden bg-card border-b overflow-x-auto flex gap-1 p-2">
           {visibleNav.map((item) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
             return (
-              <Link key={item.to} to={item.to} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs whitespace-nowrap ${active ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                <item.icon className="h-3.5 w-3.5" />{item.label}
+              <Link key={item.to} to={item.to} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium transition-all ${active ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted"}`}>
+                <span className={`${active ? "text-primary-foreground" : item.color}`}>
+                  <item.icon className="h-3.5 w-3.5" />
+                </span>
+                {item.label}
               </Link>
             );
           })}

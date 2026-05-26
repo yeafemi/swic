@@ -14,6 +14,7 @@ import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CursorTracker } from "@/components/CursorTracker";
 import { FloatingSocials } from "@/components/FloatingSocials";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -83,6 +84,37 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isChromeless = pathname.startsWith("/admin") || pathname.startsWith("/auth");
+
+  // Unique website visits tracking
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const lastLogged = localStorage.getItem("swic_last_visit_logged");
+      
+      if (lastLogged === today) return;
+
+      let visitorId = localStorage.getItem("swic_visitor_id");
+      if (!visitorId) {
+        visitorId = crypto.randomUUID();
+        localStorage.setItem("swic_visitor_id", visitorId);
+      }
+
+      const logVisit = async () => {
+        const { error } = await supabase.from("site_visits").insert({
+          visitor_id: visitorId,
+        });
+        if (!error) {
+          localStorage.setItem("swic_last_visit_logged", today);
+        }
+      };
+
+      logVisit();
+    } catch (err) {
+      console.error("Error logging site visit:", err);
+    }
+  }, []);
 
   useEffect(() => {
     const blockClipboardAction = (event: Event) => {

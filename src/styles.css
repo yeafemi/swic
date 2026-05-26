@@ -186,3 +186,13 @@
     linear-gradient(rgba(20, 20, 20, 0.15), rgba(20, 20, 20, 0.15)), 
     linear-gradient(135deg, #dcae52 0%, #af160f 100%);
 }
+
+/* Admin sidebar icon spin on hover */
+@keyframes spin360 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.group:hover .admin-nav-icon {
+  animation: spin360 0.5s ease-in-out;
+}
