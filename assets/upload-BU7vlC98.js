@@ -1,0 +1,1 @@
+import{W as r}from"./index-Bs-CX7_Q.js";async function c(o,e){const s=o.name.split(".").pop()?.toLowerCase()??"bin",t=`${e}/${crypto.randomUUID()}.${s}`,{error:a}=await r.storage.from("media").upload(t,o,{cacheControl:"3600",upsert:!1,contentType:o.type||void 0});if(a)throw a;const{data:n}=r.storage.from("media").getPublicUrl(t);return n.publicUrl}export{c as u};
