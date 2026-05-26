@@ -18,6 +18,7 @@ const links = [
   },
   { to: "/events", label: "Events" },
   { to: "/gallery", label: "Gallery" },
+  { to: "/testimonies", label: "Testimonies" },
   { to: "/contact", label: "Contact" },
 ];
 

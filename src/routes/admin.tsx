@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LayoutDashboard, MessageSquare, HandHelping, Mail, BookOpen, CalendarDays, LogOut, Home, Users, Image as ImageIcon, UserCog, Heart, Radio, ShieldCheck, ClipboardList } from "lucide-react";
+import { LayoutDashboard, MessageSquare, HandHelping, Mail, BookOpen, CalendarDays, LogOut, Home, Users, Image as ImageIcon, UserCog, Heart, Radio, ShieldCheck, ClipboardList, Quote } from "lucide-react";
 import { toast } from "sonner";
 import { canAccessAdminPath, canManageUsers, canViewAuditLogs, ROLE_LABELS, type AdminRole } from "@/lib/admin-permissions";
 
@@ -25,6 +25,7 @@ const NAV = [
   { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
   { to: "/admin/subscribers", label: "Subscribers", icon: Mail },
   { to: "/admin/giving", label: "Online Giving", icon: Heart },
+  { to: "/admin/testimonies", label: "Testimonies", icon: Quote },
   { to: "/admin/sermons", label: "Sermons", icon: BookOpen },
   { to: "/admin/events", label: "Events", icon: CalendarDays },
   { to: "/admin/live-stream", label: "Live Stream", icon: Radio },

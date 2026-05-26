@@ -83,7 +83,7 @@ export function Footer() {
             </button>
           </form>
           <div className="mt-6 text-xs text-white/50">
-            <Link to="/faq" className="hover:text-white">FAQ</Link> · <Link to="/prayer" className="hover:text-white">Prayer</Link> · <Link to="/giving" className="hover:text-white">Give</Link>
+            <Link to="/faq" className="hover:text-white">FAQ</Link> · <Link to="/prayer" className="hover:text-white">Prayer</Link> · <Link to="/giving" className="hover:text-white">Give</Link> · <Link to="/testimonies" className="hover:text-white">Testimonies</Link>
           </div>
         </div>
       </div>

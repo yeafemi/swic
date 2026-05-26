@@ -350,6 +350,39 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonies: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_published: boolean
+          name: string
+          phone: string
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_published?: boolean
+          name: string
+          phone: string
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_published?: boolean
+          name?: string
+          phone?: string
+          text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
