@@ -24,7 +24,6 @@ const NAV = [
   { to: "/admin/hero-slides", label: "Hero Slider", icon: Sliders },
   { to: "/admin/prayer-requests", label: "Prayer Requests", icon: HandHelping },
   { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
-  { to: "/admin/subscribers", label: "Subscribers", icon: Mail },
   { to: "/admin/giving", label: "Online Giving", icon: Heart },
   { to: "/admin/testimonies", label: "Testimonies", icon: Quote },
   { to: "/admin/sermons", label: "Sermons", icon: BookOpen },
