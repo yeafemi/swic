@@ -1,64 +1,71 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Play, HandHeart, ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 import heroSlide1 from "@/assets/hero-slide-1.png";
 import heroSlide2 from "@/assets/hero-slide-2.png";
 import heroSlide3 from "@/assets/hero-slide-3.png";
 import heroSlide4 from "@/assets/hero-slide-4.png";
 
-const SLIDES = [
+interface SlideData {
+  image_url: string;
+  alt: string;
+  subtitle: string;
+  title: string;
+  description: string;
+}
+
+const STATIC_SLIDES: SlideData[] = [
   {
-    image: heroSlide1,
+    image_url: "/src/assets/hero-slide-1.png",
     alt: "Vibrant worship with hands raised in praise",
     subtitle: "Welcome Home",
-    title: (
-      <>
-        Raising an army of <span className="text-gold">soul winners</span> for
-        the nations.
-      </>
-    ),
-    description:
-      "A vibrant youth church in North Legon — preaching Christ, teaching the Word, and demonstrating the power of the Holy Ghost.",
+    title: "Raising an army of **soul winners** for the nations.",
+    description: "A vibrant youth church in North Legon — preaching Christ, teaching the Word, and demonstrating the power of the Holy Ghost.",
   },
   {
-    image: heroSlide2,
+    image_url: "/src/assets/hero-slide-2.png",
     alt: "Pastor preaching the Word with passion",
     subtitle: "The Word of God",
-    title: (
-      <>
-        The Word is a <span className="text-gold">lamp</span> unto our feet.
-      </>
-    ),
-    description:
-      "Every service is an encounter — rich in biblical teaching, prophetic insight, and the transformative power of the gospel.",
+    title: "The Word is a **lamp** unto our feet.",
+    description: "Every service is an encounter — rich in biblical teaching, prophetic insight, and the transformative power of the gospel.",
   },
   {
-    image: heroSlide3,
+    image_url: "/src/assets/hero-slide-3.png",
     alt: "Youth united in fervent prayer",
     subtitle: "Prayer & Fellowship",
-    title: (
-      <>
-        A community built on <span className="text-gold">faith</span> and
-        family.
-      </>
-    ),
-    description:
-      "We are a church that prays without ceasing — every gathering is soaked in the presence and power of the Holy Spirit.",
+    title: "A community built on **faith** and family.",
+    description: "We are a church that prays without ceasing — every gathering is soaked in the presence and power of the Holy Spirit.",
   },
   {
-    image: heroSlide4,
+    image_url: "/src/assets/hero-slide-4.png",
     alt: "Joyful choir singing praises to God",
     subtitle: "Praise & Worship",
-    title: (
-      <>
-        Lifting His name with <span className="text-gold">joy</span> and glory.
-      </>
-    ),
-    description:
-      "Our worship is alive and Spirit-filled — a sound that draws heaven down and ignites the fire of God in every heart.",
+    title: "Lifting His name with **joy** and glory.",
+    description: "Our worship is alive and Spirit-filled — a sound that draws heaven down and ignites the fire of God in every heart.",
   },
 ];
+
+const resolveImage = (imageUrl: string) => {
+  if (imageUrl === "/src/assets/hero-slide-1.png") return heroSlide1;
+  if (imageUrl === "/src/assets/hero-slide-2.png") return heroSlide2;
+  if (imageUrl === "/src/assets/hero-slide-3.png") return heroSlide3;
+  if (imageUrl === "/src/assets/hero-slide-4.png") return heroSlide4;
+  return imageUrl;
+};
+
+const renderTitle = (title: string) => {
+  if (!title) return "";
+  const parts = title.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return <span key={i} className="text-gold">{part}</span>;
+    }
+    return part;
+  });
+};
 
 const SLIDE_DURATION = 6000; // ms per slide
 
@@ -67,6 +74,21 @@ export function HeroSlider() {
   const [lastActive, setLastActive] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
+  const { data: dbSlides } = useQuery({
+    queryKey: ["hero-slides"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("hero_slides")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const slides = dbSlides && dbSlides.length > 0 ? dbSlides : STATIC_SLIDES;
+
   const goTo = useCallback(
     (index: number) => {
       setLastActive(current);
@@ -77,12 +99,12 @@ export function HeroSlider() {
   );
 
   const next = useCallback(() => {
-    goTo((current + 1) % SLIDES.length);
-  }, [current, goTo]);
+    goTo((current + 1) % slides.length);
+  }, [current, goTo, slides.length]);
 
   const prev = useCallback(() => {
-    goTo((current - 1 + SLIDES.length) % SLIDES.length);
-  }, [current, goTo]);
+    goTo((current - 1 + slides.length) % slides.length);
+  }, [current, goTo, slides.length]);
 
   // Auto-advance timer
   useEffect(() => {
@@ -107,7 +129,7 @@ export function HeroSlider() {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Background slides with crossfade + Ken Burns */}
-      {SLIDES.map((slide, i) => {
+      {slides.map((slide, i) => {
         const isActive = i === current;
         const isPrev = i === lastActive;
         return (
@@ -122,8 +144,8 @@ export function HeroSlider() {
             aria-hidden={!isActive}
           >
             <img
-              src={slide.image}
-              alt={slide.alt}
+              src={resolveImage(slide.image_url)}
+              alt={slide.alt || "Soul Winners International Church Hero Slide"}
               className="h-full w-full object-cover"
               width={1920}
               height={1080}
@@ -143,14 +165,21 @@ export function HeroSlider() {
       <div className="container-prose text-white pt-20 pb-36 md:py-32 relative z-10">
         <div className="max-w-3xl -translate-y-14 md:translate-y-0">
           <div className="transition-all duration-1000 ease-out will-change-opacity will-change-transform backface-hidden">
+            {/* Subtitle / Eyebrow */}
+            {slides[current]?.subtitle && (
+              <span className="inline-block text-xs md:text-sm font-semibold tracking-widest text-gold uppercase mb-3">
+                {slides[current].subtitle}
+              </span>
+            )}
+
             {/* Title */}
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.02]">
-              {SLIDES[0].title}
+              {renderTitle(slides[current]?.title || "")}
             </h1>
 
             {/* Description */}
             <p className="mt-6 text-lg md:text-xl text-white/85 max-w-2xl leading-relaxed">
-              {SLIDES[0].description}
+              {slides[current]?.description}
             </p>
 
             {/* CTA buttons */}
@@ -190,7 +219,7 @@ export function HeroSlider() {
 
       {/* Slide indicators with progress */}
       <div className="absolute bottom-28 sm:bottom-24 left-1/2 -translate-x-1/2 z-20 hidden md:flex items-center gap-3">
-        {SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => goTo(i)}
@@ -219,7 +248,7 @@ export function HeroSlider() {
           {String(current + 1).padStart(2, "0")}
         </span>
         <span className="mx-1">/</span>
-        <span>{String(SLIDES.length).padStart(2, "0")}</span>
+        <span>{String(slides.length).padStart(2, "0")}</span>
       </div>
     </section>
   );

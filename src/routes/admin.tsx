@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LayoutDashboard, MessageSquare, HandHelping, Mail, BookOpen, CalendarDays, LogOut, Home, Users, Image as ImageIcon, UserCog, Heart, Radio, ShieldCheck, ClipboardList, Quote } from "lucide-react";
+import { LayoutDashboard, MessageSquare, HandHelping, Mail, BookOpen, CalendarDays, LogOut, Home, Users, Image as ImageIcon, UserCog, Heart, Radio, ShieldCheck, ClipboardList, Quote, Sliders } from "lucide-react";
 import { toast } from "sonner";
 import { canAccessAdminPath, canManageUsers, canViewAuditLogs, ROLE_LABELS, type AdminRole } from "@/lib/admin-permissions";
 
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/admin")({
 
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/hero-slides", label: "Hero Slider", icon: Sliders },
   { to: "/admin/prayer-requests", label: "Prayer Requests", icon: HandHelping },
   { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
   { to: "/admin/subscribers", label: "Subscribers", icon: Mail },

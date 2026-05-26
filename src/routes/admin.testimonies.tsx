@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Trash2, Phone, Mail, Clock, ShieldCheck, Heart } from "lucide-react";
+import { Check, X, Trash2, Phone, Mail, Clock, ShieldCheck, Heart, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { canDelete } from "@/lib/admin-permissions";
 import { useAdminRole } from "@/hooks/use-admin-role";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/admin/testimonies")({
   component: TestimoniesAdmin,
@@ -16,6 +21,24 @@ export const Route = createFileRoute("/admin/testimonies")({
 function TestimoniesAdmin() {
   const qc = useQueryClient();
   const { role } = useAdminRole();
+
+  const [editingTestimony, setEditingTestimony] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    text: "",
+  });
+
+  const handleEditClick = (t: any) => {
+    setEditingTestimony(t);
+    setEditForm({
+      name: t.name,
+      phone: t.phone,
+      email: t.email || "",
+      text: t.text,
+    });
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-testimonies"],
@@ -57,6 +80,36 @@ function TestimoniesAdmin() {
     },
     onError: (err) => {
       toast.error("Failed to delete testimony: " + err.message);
+    },
+  });
+
+  const updateTestimony = useMutation({
+    mutationFn: async ({
+      id,
+      name,
+      phone,
+      email,
+      text,
+    }: {
+      id: string;
+      name: string;
+      phone: string;
+      email: string | null;
+      text: string;
+    }) => {
+      const { error } = await supabase
+        .from("testimonies")
+        .update({ name, phone, email: email || null, text })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-testimonies"] });
+      toast.success("Testimony updated successfully!");
+      setEditingTestimony(null);
+    },
+    onError: (err) => {
+      toast.error("Failed to update testimony: " + err.message);
     },
   });
 
@@ -115,6 +168,16 @@ function TestimoniesAdmin() {
               </div>
 
               <div className="flex gap-2 shrink-0 self-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEditClick(t)}
+                  className="hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Pencil className="h-4 w-4 mr-1.5" />
+                  Edit
+                </Button>
+
                 {t.is_published ? (
                   <Button
                     size="sm"
@@ -161,6 +224,89 @@ function TestimoniesAdmin() {
           </div>
         )}
       </div>
+
+      {editingTestimony && (
+        <Dialog open={!!editingTestimony} onOpenChange={(open) => !open && setEditingTestimony(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Testimony</DialogTitle>
+              <DialogDescription>
+                Make changes to this testimony's details. These changes will be saved directly to the database.
+              </DialogDescription>
+            </DialogHeader>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editForm.name.trim().length < 2) return toast.error("Please enter a valid name.");
+                if (editForm.phone.trim().length < 5) return toast.error("Please enter a valid contact number.");
+                if (editForm.text.trim().length < 10) return toast.error("Please enter a detailed testimony.");
+
+                updateTestimony.mutate({
+                  id: editingTestimony.id,
+                  name: editForm.name.trim(),
+                  phone: editForm.phone.trim(),
+                  email: editForm.email.trim() || null,
+                  text: editForm.text.trim(),
+                });
+              }}
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name *</Label>
+                <Input
+                  id="edit-name"
+                  required
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Full Name"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone">Telephone *</Label>
+                  <Input
+                    id="edit-phone"
+                    required
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    placeholder="Phone number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email (optional)</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    placeholder="Email address"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-text">Testimony *</Label>
+                <Textarea
+                  id="edit-text"
+                  required
+                  rows={6}
+                  value={editForm.text}
+                  onChange={(e) => setEditForm({ ...editForm, text: e.target.value })}
+                  placeholder="Share what God has done..."
+                  className="resize-none text-sm"
+                />
+              </div>
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setEditingTestimony(null)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateTestimony.isPending}>
+                  {updateTestimony.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

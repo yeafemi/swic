@@ -1,3 +1,11 @@
+-- Drop existing policies to prevent "already exists" errors
+DROP POLICY IF EXISTS "Allow public insert" ON public.testimonies;
+DROP POLICY IF EXISTS "Allow public read of published" ON public.testimonies;
+DROP POLICY IF EXISTS "Content roles view testimonies" ON public.testimonies;
+DROP POLICY IF EXISTS "Content roles insert testimonies" ON public.testimonies;
+DROP POLICY IF EXISTS "Content roles update testimonies" ON public.testimonies;
+DROP POLICY IF EXISTS "Super admins delete testimonies" ON public.testimonies;
+
 -- Create testimonies table
 CREATE TABLE IF NOT EXISTS public.testimonies (
   id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
@@ -41,6 +49,7 @@ CREATE POLICY "Super admins delete testimonies"
   USING (public.can_delete_content());
 
 -- Trigger to automatically update updated_at timestamp
+DROP TRIGGER IF EXISTS update_testimonies_updated_at ON public.testimonies;
 CREATE TRIGGER update_testimonies_updated_at
   BEFORE UPDATE ON public.testimonies
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

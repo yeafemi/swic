@@ -33,6 +33,7 @@ import { Route as AdminMinistriesRouteImport } from './routes/admin.ministries'
 import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
 import { Route as AdminLiveStreamRouteImport } from './routes/admin.live-stream'
 import { Route as AdminLeadersRouteImport } from './routes/admin.leaders'
+import { Route as AdminHeroSlidesRouteImport } from './routes/admin.hero-slides'
 import { Route as AdminGivingRouteImport } from './routes/admin.giving'
 import { Route as AdminGalleryRouteImport } from './routes/admin.gallery'
 import { Route as AdminEventsRouteImport } from './routes/admin.events'
@@ -158,6 +159,11 @@ const AdminLeadersRoute = AdminLeadersRouteImport.update({
   path: '/leaders',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminHeroSlidesRoute = AdminHeroSlidesRouteImport.update({
+  id: '/hero-slides',
+  path: '/hero-slides',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminGivingRoute = AdminGivingRouteImport.update({
   id: '/giving',
   path: '/giving',
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/admin/events': typeof AdminEventsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/giving': typeof AdminGivingRoute
+  '/admin/hero-slides': typeof AdminHeroSlidesRoute
   '/admin/leaders': typeof AdminLeadersRoute
   '/admin/live-stream': typeof AdminLiveStreamRoute
   '/admin/messages': typeof AdminMessagesRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/admin/events': typeof AdminEventsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/giving': typeof AdminGivingRoute
+  '/admin/hero-slides': typeof AdminHeroSlidesRoute
   '/admin/leaders': typeof AdminLeadersRoute
   '/admin/live-stream': typeof AdminLiveStreamRoute
   '/admin/messages': typeof AdminMessagesRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/admin/events': typeof AdminEventsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/giving': typeof AdminGivingRoute
+  '/admin/hero-slides': typeof AdminHeroSlidesRoute
   '/admin/leaders': typeof AdminLeadersRoute
   '/admin/live-stream': typeof AdminLiveStreamRoute
   '/admin/messages': typeof AdminMessagesRoute
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/gallery'
     | '/admin/giving'
+    | '/admin/hero-slides'
     | '/admin/leaders'
     | '/admin/live-stream'
     | '/admin/messages'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/gallery'
     | '/admin/giving'
+    | '/admin/hero-slides'
     | '/admin/leaders'
     | '/admin/live-stream'
     | '/admin/messages'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/gallery'
     | '/admin/giving'
+    | '/admin/hero-slides'
     | '/admin/leaders'
     | '/admin/live-stream'
     | '/admin/messages'
@@ -548,6 +560,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLeadersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/hero-slides': {
+      id: '/admin/hero-slides'
+      path: '/hero-slides'
+      fullPath: '/admin/hero-slides'
+      preLoaderRoute: typeof AdminHeroSlidesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/giving': {
       id: '/admin/giving'
       path: '/giving'
@@ -584,6 +603,7 @@ interface AdminRouteChildren {
   AdminEventsRoute: typeof AdminEventsRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminGivingRoute: typeof AdminGivingRoute
+  AdminHeroSlidesRoute: typeof AdminHeroSlidesRoute
   AdminLeadersRoute: typeof AdminLeadersRoute
   AdminLiveStreamRoute: typeof AdminLiveStreamRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
@@ -601,6 +621,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEventsRoute: AdminEventsRoute,
   AdminGalleryRoute: AdminGalleryRoute,
   AdminGivingRoute: AdminGivingRoute,
+  AdminHeroSlidesRoute: AdminHeroSlidesRoute,
   AdminLeadersRoute: AdminLeadersRoute,
   AdminLiveStreamRoute: AdminLiveStreamRoute,
   AdminMessagesRoute: AdminMessagesRoute,
